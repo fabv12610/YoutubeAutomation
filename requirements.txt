@@ -1,0 +1,14 @@
+# Text-to-Speech Engines
+Simpler-Kokoro
+gTTS
+edge-tts
+piper-tts
+
+# Speech-to-Text (Transcription)
+faster-whisper
+
+# Backend & Runtimes
+onnxruntime
+onnxruntime-gpu; sys_platform == 'linux' or sys_platform == 'win32'
+moviepy
+pytubefix
