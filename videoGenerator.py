@@ -3,59 +3,60 @@ from moviepy import *
 import os
 from pytubefix import YouTube
 from moviepy.video.tools.subtitles import SubtitlesClip
+import shutil
 
-if not os.path.exists("./Clips"):
+if not os.path.exists("Clips"):
     os.mkdir("Clips")
+    os.chdir("Clips")
 else:
-    os.chdir('./Clips')
-
+    os.chdir('Clips')
 
 def youtube_vids():
     url = input("Enter the video url here: ")
     if url == '':
-        url = 'https://www.youtube.com/watch?v=65f9XmbMs9A'
+        url = 'https://www.youtube.com/watch?v=ozPW_dwOtmY'
 
     def progress_function(stream, chunk, bytes_remaining):
-        total_size = stream.filesize  # Get size directly from the stream object
+        total_size = stream.filesize
         current = ((total_size - bytes_remaining) / total_size)
-        percent = ('{0:.1f}').format(current * 100)
+        percent = '{0:.2f}'.format(current * 100)
         progress = int(50 * current)
         status = '█' * progress + '-' * (50 - progress)
         sys.stdout.write(' ↳ |{bar}| {percent}%\r'.format(bar=status, percent=percent))
         sys.stdout.flush()
 
-    yt = YouTube(url, on_progress_callback = progress_function)
+    yt = YouTube(url, on_progress_callback=progress_function)
 
     # 1. Find the absolute highest resolution (video only)
-    # This usually finds 1080p, 1440p, or 4K
     stream = yt.streams.filter(only_video=True, file_extension='mp4').order_by('resolution').desc().first()
 
     if not stream:
         print("No video streams found.")
         return None
 
-    print(f"Downloading {stream.resolution} video...")
+    print(f"\nDownloading {stream.resolution} video...")
     temp_file = stream.download(filename="temp_raw_video.mp4")
 
-    # 2. Safety Net: Strip audio if it somehow exists
-    print("Ensuring the track is silent...")
+    final_filename = "final_silent_video.mp4"
+
+    # 2. Safety Net: Check if audio exists before stripping
+    print("\nChecking for audio tracks...")
     video_clip = VideoFileClip(temp_file)
 
-    # .without_audio() removes the audio track entirely
-    silent_clip = video_clip.without_audio()
-
-    # 3. Save the final version
-    # Note: Using 'ultrafast' for speed since we aren't merging audio
-    final_filename = "final_silent_video.mp4"
-    silent_clip.write_videofile(final_filename, codec="libx264", preset="ultrafast")
-
-    # 4. Cleanup
-    video_clip.close()
-    os.remove(temp_file)
+    if video_clip.audio is None:
+        print("Video is already silent! Skipping re-encoding step...")
+        video_clip.close()
+        # Just rename the file since it's already silent
+        shutil.move(temp_file, final_filename)
+    else:
+        print("Audio detected. Stripping audio track...")
+        silent_clip = video_clip.without_audio()
+        silent_clip.write_videofile(final_filename, codec="libx264", preset="ultrafast")
+        video_clip.close()
+        os.remove(temp_file)
 
     print(f"\nSuccess! Silent {stream.resolution} video saved as {final_filename}")
     return os.path.abspath(final_filename)
-
 
 def videos_clips():
     videos = []
@@ -118,11 +119,13 @@ def videos_clips():
     def make_text(txt):
         return TextClip(
             text=txt,
+            font="../font.ttf",
             text_align='center',
-            font_size=60,  # bigger for phone
+            font_size=120,  # bigger for phone
             color='white',
             method='caption',
-            size=(int(clip.w * 0.9), None))
+            size=(int(clip.w * 0.9), None)
+        )
 
     subs = SubtitlesClip(
         subtitle_files[0],
@@ -132,14 +135,19 @@ def videos_clips():
     # Combine
     result = CompositeVideoClip([
         clip,
-        subs.with_position(('center', 'bottom'))
+        subs.with_position(('center', 'center'))
     ])
 
-    # Export (faster settings)
+    # ---- OPTIMIZED EXPORT ----
+    # Uses max CPU threads, hardware acceleration, and faster presets
     result.write_videofile(
         "output.mp4",
-        fps=60,
-        preset="medium"
+        fps=60,               # Only keep at 60 if source is 60fps
+        codec='h264_videotoolbox',   # MAC USERS: change to "h264_videotoolbox" | INTEL USERS: "h264_qsv" | CPU ONLY: "libx264"
+        audio_codec="aac",    # explicitly force aac to prevent delays
+        preset="medium",      # Faster encoding without sacrificing noticeable quality
+        #threads=os.cpu_count()# Dynamically maxes out your specific CPU
+	threads = 16
     )
 
     # Cleanup
@@ -148,4 +156,4 @@ def videos_clips():
     subs.close()
     result.close()
 
-youtube_vids()
+videos_clips()

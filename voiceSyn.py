@@ -149,3 +149,10 @@ def audio_to_srt(input_audio, output_srt):
             )
 
     return output_srt
+
+test = '''
+Is now the two hours' traffic of our stage;
+The which if you with patient ears attend,
+What here shall miss, our toil shall strive to mend.'''
+
+main(test, 'kokoro')

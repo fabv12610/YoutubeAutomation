@@ -12,3 +12,4 @@ onnxruntime
 onnxruntime-gpu; sys_platform == 'linux' or sys_platform == 'win32'
 moviepy
 pytubefix
+pillow == 10.4.0
