@@ -11,8 +11,9 @@ if not os.path.exists("Clips"):
 else:
     os.chdir('Clips')
 
-def youtube_vids():
-    url = input("Enter the video url here: ")
+def youtube_vids(url=None):
+    if not url:
+        url = input("Enter the video url here: ")
     if url == '':
         url = 'https://www.youtube.com/watch?v=ozPW_dwOtmY'
 
@@ -143,11 +144,10 @@ def videos_clips():
     result.write_videofile(
         "output.mp4",
         fps=60,               # Only keep at 60 if source is 60fps
-        codec='h264_videotoolbox',   # MAC USERS: change to "h264_videotoolbox" | INTEL USERS: "h264_qsv" | CPU ONLY: "libx264"
+        codec='libx264',   # MAC USERS: change to "h264_videotoolbox" | INTEL USERS: "h264_qsv" | CPU ONLY: "libx264"
         audio_codec="aac",    # explicitly force aac to prevent delays
         preset="medium",      # Faster encoding without sacrificing noticeable quality
-        #threads=os.cpu_count()# Dynamically maxes out your specific CPU
-	threads = 16
+        threads=os.cpu_count() # Dynamically maxes out your specific CPU
     )
 
     # Cleanup
@@ -155,5 +155,3 @@ def videos_clips():
     clip.close()
     subs.close()
     result.close()
-
-videos_clips()

@@ -60,7 +60,7 @@ def choose_post(posts):
                 print("\n--- POST ---")
                 print("Title:", selected["title"])
                 print("\nBody:\n", selected["body"])
-                return
+                return selected
             else:
                 print("Invalid number.")
         except ValueError:
