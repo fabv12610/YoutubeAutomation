@@ -21,6 +21,23 @@ whisper_model = WhisperModel("base", compute_type="int8")
 
 
 # -------- Main --------
+def get_txt():
+    os.chdir('../')
+    txt_file = ''
+    for filename in os.listdir("./"):
+        if filename.endswith(".txt") and filename != "requirements.txt":
+            txt_file = filename
+            # Print the most recently added file
+            print(f"Added: {filename}")
+
+    if txt_file == '':
+        print(f"No txt found Found")
+        return None
+
+    print(f"Found txt file")
+    with open(txt_file, 'r') as file:
+        content = file.read()
+        return content
 
 def main(string, provider):
     print(f"Selected: {provider}")
@@ -67,14 +84,12 @@ def main(string, provider):
     print(f"Audio: {output}")
     print(f"Subtitles: {srt_file}")
 
-
 # -------- Providers --------
 
 async def edge_tts_main(string, output):
     communicate = edge_tts.Communicate(string, "en-US-AriaNeural", rate="-25%")
     await communicate.save(output)
     return output
-
 
 def gtts_main(string, output):
     try:
@@ -84,7 +99,6 @@ def gtts_main(string, output):
     except gTTSError as e:
         print(f"gTTS error: {e}")
         return None
-
 
 def kokoro_main(string, output):
     sk = SimplerKokoro()
@@ -110,7 +124,6 @@ def kokoro_main(string, output):
 
     return output
 
-
 def piper_main(string, output):
     session_options = ort.SessionOptions()
     session_options.intra_op_num_threads = 8
@@ -126,7 +139,6 @@ def piper_main(string, output):
         voice.synthesize(string, wav_file)
 
     return output
-
 
 # -------- Subtitles --------
 
@@ -149,10 +161,3 @@ def audio_to_srt(input_audio, output_srt):
             )
 
     return output_srt
-
-test = '''
-Is now the two hours' traffic of our stage;
-The which if you with patient ears attend,
-What here shall miss, our toil shall strive to mend.'''
-
-main(test, 'kokoro')
