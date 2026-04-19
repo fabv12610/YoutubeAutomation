@@ -5,6 +5,10 @@ from pytubefix import YouTube
 from moviepy.video.tools.subtitles import SubtitlesClip
 import shutil
 
+# --- PATH FIX: Get the absolute path to the font based on the script's location ---
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+FONT_PATH = os.path.join(SCRIPT_DIR, "font.ttf")
+
 if not os.path.exists("Clips"):
     os.mkdir("Clips")
     os.chdir("Clips")
@@ -120,7 +124,7 @@ def videos_clips():
     def make_text(txt):
         return TextClip(
             text=txt,
-            font="../font.ttf",
+            font=FONT_PATH,  # <-- Using absolute path variable here
             text_align='center',
             font_size=120,  # bigger for phone
             color='white',
